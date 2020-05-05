@@ -1,0 +1,46 @@
+version: '3.7'
+services:
+  web:
+    image: nginx:stable-alpine
+    container_name: nginx
+    ports:
+      - '80:80'
+      - '443:443'
+    depends_on:
+      - phpfpm
+    volumes:
+      - vhosts:/vhosts
+      - nginx_conf:/etc/nginx/conf.d:rw,cached
+      - certs:/etc/letsencrypt:rw,cached
+      - /var/log/nginx:/var/log/nginx
+    restart: always
+
+  phpfpm:
+    image: bitnami/php-fpm
+    container_name: php-fpm
+    depends_on:
+      - db
+    volumes:
+      - vhosts:/vhosts
+    ports:
+      - '9000:9000'
+    restart: always
+
+  db:
+    image: mysql:5.7
+    container_name: mysql
+    ports:
+      - '3306:3306'
+    volumes:
+      - db_data:/var/lib/mysql:rw,delegated
+    restart: always
+
+volumes:
+  db_data:
+    external: true
+  vhosts:
+    external: true
+  certs:
+    external: true
+  nginx_conf:
+    external: true
